@@ -89,6 +89,8 @@ echo "*** This is the L$level hypervisor ***"
 # Run the nested guest.
 /run-supernested.sh --nested
 
+echo "*** the L$level hypervisor is exiting ***"
+
 # Exit and reboot.
 # qemu has the -no-reboot flag, so issuing a reboot here actually
 # causes qemu to exit gracefully.
