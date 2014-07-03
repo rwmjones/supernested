@@ -72,9 +72,18 @@ on baremetal, on a machine which is KVM-capable, a modern CPU, with
 lots of free memory, and nothing much else running.
 
 You need to have the kernel KVM module (eg. kvm_amd or kvm_intel)
-loaded, with the nested flag set.  The nested flag defaults to true in
-recent kernels.  /dev/kvm needs to be accessible.  On some distros
-you may need to add your user to a special 'kvm' group.
+loaded, with the nested=1 flag.  The nested flag defaults to true for
+AMD in recent kernels, but not for Intel.  To force this, do:
+
+  mkdir -p /etc/modprobe.d
+  echo "options kvm_intel nested=1" > /etc/modprobe.d/kvm.conf
+
+To see if nested is enabled, use:
+
+  cat /sys/modules/kvm_(intel|amd)/parameters/nested
+
+/dev/kvm needs to be accessible.  On some distros you may need to add
+your user to a special 'kvm' group.
 
 You *don't* need to run this command as root.  Running it as root may
 give different results.  Consult a qemu/KVM expert.
