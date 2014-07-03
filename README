@@ -45,6 +45,7 @@ Compiling the disk image
 
 To build the disk image, do:
 
+  autoreconf -i
   ./configure
   make
 
