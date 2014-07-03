@@ -1,0 +1,84 @@
+Supernested is a test of nested KVM.  It is able to run KVM, nested to
+any depth, limited only by available memory, bugs in KVM, and your
+patience.
+
+
+Author
+----------------------------------------------------------------------
+
+By Richard W.M. Jones <rjones@redhat.com>
+
+Bugs, feedback etc: http://www.redhat.com/mailman/listinfo/virt-tools-list
+
+(Note: Bugs in KVM or the kernel should be reported to the qemu-devel
+or Linux kernel mailing lists respectively)
+
+
+License
+----------------------------------------------------------------------
+
+Gnu General Public License, version 2 or above.  See 'COPYING'.
+
+
+Requirements
+----------------------------------------------------------------------
+
+ - supermin version 5
+   https://github.com/libguestfs/supermin
+   Note: older versions of supermin will not work
+
+ - guestfish
+
+ - recent qemu and kernel
+
+ - qemu-img
+
+ - getopt(1) utility (from util-linux)
+
+ - Only tested on Fedora, but it should work on other Linux distros
+   *provided* they have supermin 5 support.  Patches to fix that are
+   welcome.
+
+
+Compiling the disk image
+----------------------------------------------------------------------
+
+To build the disk image, do:
+
+  ./configure
+  make
+
+Assuming that works you will end up with 4 files:
+
+ - 'supernested-<VERSION>-<DISTRO>.qcow2'
+   The disk image.
+
+ - 'kernel'
+
+ - 'initrd'
+
+ - 'run-supernested.sh'
+
+You need all 4 files for the next step.
+
+
+Running the disk image
+----------------------------------------------------------------------
+
+!NOTE FIRST!  If nested KVM is broken, it can *frequently* cause your
+host machine to crash, reboot, catch fire, etc.  You need to run this
+on baremetal, on a machine which is KVM-capable, a modern CPU, with
+lots of free memory, and nothing much else running.
+
+You need to have the kernel KVM module (eg. kvm_amd or kvm_intel)
+loaded, with the nested flag set.  The nested flag defaults to true in
+recent kernels.  /dev/kvm needs to be accessible.  On some distros
+you may need to add your user to a special 'kvm' group.
+
+You *don't* need to run this command as root.  Running it as root may
+give different results.  Consult a qemu/KVM expert.
+
+Have a look at the 'run-supernested.sh' script.  You may want to edit
+things like the name of the qemu binary.
+
+  ./run-supernested.sh

@@ -1,0 +1,85 @@
+#!/bin/bash -
+# supernested Makefile.am
+# @configure_input@
+# (C) Copyright 2014 Red Hat Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Written by Richard W.M. Jones <rjones@redhat.com>
+
+echo "*** /init script starting up ***"
+
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
+# Create /proc, /sys, /run, /dev, /tmp
+if [ ! -d /proc ]; then rm -f /proc; fi
+mkdir -p /proc
+mount -t proc /proc /proc
+if [ ! -d /sys ]; then rm -f /sys; fi
+mkdir -p /sys
+mount -t sysfs /sys /sys
+mkdir -p /run
+mount -t tmpfs -o "nosuid,size=20%,mode=0755" tmpfs /run
+mkdir -p /run/lock
+ln -s ../run/lock /var/lock
+mount -t devtmpfs /dev /dev
+mkdir -p /tmp
+mount -t tmpfs tmpfs /tmp
+
+# Find and start udev.
+for f in /sbin/udevd /lib/udev/udevd \
+    /lib/systemd/systemd-udevd /usr/lib/systemd/systemd-udevd \
+    /usr/lib/udev/udevd; do
+  if [ -x "$f" ]; then UDEVD="$f"; fi
+done
+if [ -z "$UDEVD" ]; then
+  echo "udev not found!  Things will probably not work ..."
+fi
+$UDEVD --daemon
+udevadm trigger
+udevadm settle --timeout=600
+
+# Set up kmod static-nodes (RHBZ#1011907).
+mkdir -p /run/tmpfiles.d
+kmod static-nodes --format=tmpfiles --output=/run/tmpfiles.d/kmod.conf
+
+# Set up tmpfiles (must run after kmod.conf is created above).
+systemd-tmpfiles --prefix=/dev --create
+
+# Print some information about the system.
+echo -n "cmdline: "
+cat /proc/cmdline
+
+echo -n "clocksource: "
+cat /sys/devices/system/clocksource/clocksource0/current_clocksource
+
+echo -n "kernel: "
+uname -r
+
+echo "/proc/cpuinfo ------------------------------"
+cat /proc/cpuinfo
+echo "--------------------------------------------"
+
+# ls -lR /dev
+# cat /proc/mounts
+# lsmod
+
+# Run the nested guest.
+/run-supernested.sh
+
+# Exit and reboot.
+# qemu has the -no-reboot flag, so issuing a reboot here actually
+# causes qemu to exit gracefully.
+reboot -f

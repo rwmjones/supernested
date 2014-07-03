@@ -1,0 +1,106 @@
+#!/bin/bash -
+# supernested Makefile.am
+# @configure_input@
+# (C) Copyright 2014 Red Hat Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Written by Richard W.M. Jones <rjones@redhat.com>
+
+qemu="@QEMU@"
+image="supernested-@VERSION@-@DISTRO@.qcow2"
+format=qcow2
+kernel=kernel
+initrd=initrd
+append="panic=1 console=ttyS0 udevtimeout=6000 no_timer_check printk.time=1 root=/dev/sda selinux=0"
+
+TEMP=`getopt \
+        --long nested \
+        -n run-supernested.sh -- "$@"`
+if [ $? != 0 ]; then
+    echo "$0: problem parsing the command line arguments"
+    exit 1
+fi
+eval set -- "$TEMP"
+
+while true ; do
+    case "$1" in
+        --nested)
+            # When the nested guest calls this script, it uses the
+            # --nested flag.  DO NOT ADD THIS FLAG YOURSELF!
+            image=/dev/sda
+            format=raw
+            kernel=/kernel
+            initrd=/initrd
+            shift
+            ;;
+        --help)
+            echo "$0: read the README file for information about this script"
+            shift
+            ;;
+        --)
+            shift
+            ;;
+        *)
+            echo "internal error ($1)"
+            exit 1
+            ;;
+    esac
+done
+
+# How much memory to give to the guest?
+memory="$(
+    grep -Eo '^MemTotal:.*[[:digit:]]+ kB' /proc/meminfo |
+    grep -Eo '[[:digit:]]+'
+    )"
+if [ -z "memory" ]; then
+    echo "$0: could not get total memory from /proc/meminfo"
+    exit 1
+fi
+memory=$((memory / 1024))
+if [ $memory -lt 2048 ]; then
+    echo "$0: not enough memory left: memory=$memory MB"
+    exit 1
+fi
+memory=$((memory - 1500))
+
+# Get current nesting level from /proc/cmdline, increment it, add it
+# to the command line.
+level="$(
+    grep -Eo 'supernested.level=[[:digit:]]+' /proc/cmdline |
+    grep -Eo '[[:digit:]]+'
+    )"
+if [ -z "$level" ]; then level=0; fi
+append="$append supernested.level=$((level+1))"
+
+exec \
+"$qemu" \
+    -cpu host \
+    -machine accel=kvm \
+    -display none \
+    -m $memory \
+    -no-reboot \
+    -rtc driftfix=slew \
+    -no-hpet \
+    -global kvm-pit.lost_tick_policy=discard \
+    -kernel "$kernel" \
+    -initrd "$initrd" \
+    -device virtio-scsi-pci,id=scsi \
+    -drive file="$image",snapshot=on,cache=unsafe,format="$format",id=hd0,if=none \
+    -device scsi-hd,drive=hd0 \
+    -device virtio-serial-pci \
+    -serial stdio \
+    -device sga \
+    -append "$append"

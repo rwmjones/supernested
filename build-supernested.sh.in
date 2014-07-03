@@ -1,0 +1,79 @@
+#!/bin/bash -
+# supernested Makefile.am
+# @configure_input@
+# (C) Copyright 2014 Red Hat Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Written by Richard W.M. Jones <rjones@redhat.com>
+
+unset CDPATH
+set -e
+
+supermin="@SUPERMIN@"
+distro="@DISTRO@"
+guestfish="@GUESTFISH@"
+
+output="$1"
+if [ -z "$output" ]; then
+    echo "$0: do not run this script directly, use 'make'"
+    exit 1
+fi
+
+# Get the list of package names.  This is distro-specific.
+if [[ "$distro" =~ ^fedora- ]]; then
+    packages="
+        bash
+        coreutils
+        grep
+        qemu
+        systemd
+        util-linux
+    "
+else
+    echo "$0: $distro not known.  You need to edit this script to add support for this distro."
+    exit 1
+fi
+
+# Run the prepare step.
+echo "Preparing the supermin appliance containing:" $packages
+"$supermin" --prepare $packages -o tmp-supermin.d
+
+# Add the init & run-supernested.sh scripts.
+tar cf tmp-supermin.d/init.tar init run-supernested.sh
+
+# Add the excludefiles.
+cp excludefiles tmp-supermin.d/
+
+# Run the build step.
+echo "Building the full appliance ..."
+echo "If you see 'Permission denied' errors here, you can probably ignore"
+echo "them, but encourage your distro to stop using security-through-obscurity."
+"$supermin" --build --format ext2 tmp-supermin.d -o tmp-appliance.d
+
+# Add the kernel and initrd to the image.
+# We have to do this here, AFTER the build step, because we don't
+# have the kernel & initrd before this.
+echo "Adding kernel and initrd to the disk image ..."
+"$guestfish" --format=raw -a tmp-appliance.d/root -m /dev/sda <<EOF
+  upload tmp-appliance.d/kernel /kernel
+  upload tmp-appliance.d/initrd /initrd
+EOF
+
+# Copy out the kernel, initrd and disk image.
+mv tmp-appliance.d/kernel .
+mv tmp-appliance.d/initrd .
+qemu-img convert -f raw tmp-appliance.d/root -O qcow2 "$output"
+rm -rf tmp-supermin.d tmp-appliance.d
