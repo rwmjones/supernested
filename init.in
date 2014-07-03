@@ -23,7 +23,7 @@ echo "*** /init script starting up ***"
 
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
-# Create /proc, /sys, /run, /dev, /tmp
+# Create /proc, /sys, /run, /dev, /tmp, /var/tmp
 if [ ! -d /proc ]; then rm -f /proc; fi
 mkdir -p /proc
 mount -t proc /proc /proc
@@ -37,6 +37,8 @@ ln -s ../run/lock /var/lock
 mount -t devtmpfs /dev /dev
 mkdir -p /tmp
 mount -t tmpfs tmpfs /tmp
+mkdir -p /var/tmp
+mount -t tmpfs tmpfs /var/tmp
 
 # Find and start udev.
 for f in /sbin/udevd /lib/udev/udevd \
