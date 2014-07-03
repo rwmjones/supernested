@@ -26,10 +26,12 @@ kernel=kernel
 initrd=initrd
 append="panic=1 console=ttyS0 udevtimeout=6000 no_timer_check printk.time=1 root=/dev/sda selinux=0"
 smp=
+accel=kvm
+cpu="-cpu host"
 
 TEMP=`getopt \
         -o '' \
-        --longoptions 'help,nested,smp:' \
+        --longoptions 'help,nested,smp:,tcg' \
         -n run-supernested.sh -- "$@"`
 if [ $? != 0 ]; then
     echo "$0: problem parsing the command line arguments"
@@ -40,9 +42,10 @@ eval set -- "$TEMP"
 usage ()
 {
     echo "$0: Run the supernested appliance."
-    echo "  $0 [--smp=N]"
+    echo "  $0 [--smp=N] [--tcg]"
     echo "Options:"
     echo "  --smp=N    Use N virtual CPUs (at all levels)."
+    echo "  --tcg      Use TCG (at all levels) instead of KVM."
 }
 
 while true ; do
@@ -59,12 +62,25 @@ while true ; do
                 grep -Eo '[[:digit:]]+'
                 )"
 	    if [ -n "$smp" ]; then smp="-smp $smp"; fi
+	    accel="$(
+                grep -Eo 'supernested.accel=tcg' /proc/cmdline
+                )"
+	    if [ -n "$accel" ]; then
+		accel=tcg
+		cpu=
+	    fi
             shift
             ;;
 	--smp)
 	    smp="-smp $2"
 	    append="$append supernested.smp=$2"
 	    shift 2
+	    ;;
+	--tcg)
+	    accel=tcg
+	    cpu=
+	    append="$append supernested.accel=tcg"
+	    shift
 	    ;;
         --help)
 	    usage
@@ -108,7 +124,9 @@ append="$append supernested.level=$((level+1))"
 
 echo "Running"
 echo "    qemu = $qemu"
+echo "    cpu = $cmp"
 echo "    smp = $smp"
+echo "    accel = $accel"
 echo "    memory = $memory"
 echo "    kernel = $kernel"
 echo "    initrd = $initrd"
@@ -120,9 +138,9 @@ sync
 
 exec \
 "$qemu" \
-    -cpu host \
-    -machine accel=kvm \
+    $cpu \
     $smp \
+    -machine accel=$accel \
     -display none \
     -m $memory \
     -no-reboot \
