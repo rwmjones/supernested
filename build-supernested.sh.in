@@ -42,6 +42,16 @@ if [[ "$distro" =~ ^fedora- ]]; then
         systemd
         util-linux
     "
+elif [[ "$distro" =~ ^debian- ]]; then
+    packages="
+        bash
+        coreutils
+        grep
+        qemu-system-x86
+        sgabios
+        sysvinit-core
+        util-linux
+    "
 else
     echo "$0: $distro not known.  You need to edit this script to add support for this distro."
     exit 1
