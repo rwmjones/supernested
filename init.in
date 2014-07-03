@@ -58,7 +58,15 @@ kmod static-nodes --format=tmpfiles --output=/run/tmpfiles.d/kmod.conf
 # Set up tmpfiles (must run after kmod.conf is created above).
 systemd-tmpfiles --prefix=/dev --create
 
+# libiscsi puts itself in a non-standard directory.
+/sbin/ldconfig
+
 # Print some information about the system.
+echo "/proc/cpuinfo ------------------------------"
+cat /proc/cpuinfo
+echo "--------------------------------------------"
+echo
+
 echo -n "cmdline: "
 cat /proc/cmdline
 
@@ -68,16 +76,18 @@ cat /sys/devices/system/clocksource/clocksource0/current_clocksource
 echo -n "kernel: "
 uname -r
 
-echo "/proc/cpuinfo ------------------------------"
-cat /proc/cpuinfo
-echo "--------------------------------------------"
-
 # ls -lR /dev
 # cat /proc/mounts
 # lsmod
 
+level="$(
+    grep -Eo 'supernested.level=[[:digit:]]+' /proc/cmdline |
+    grep -Eo '[[:digit:]]+'
+    )"
+echo "*** This is the L$level hypervisor ***"
+
 # Run the nested guest.
-/run-supernested.sh
+/run-supernested.sh --nested
 
 # Exit and reboot.
 # qemu has the -no-reboot flag, so issuing a reboot here actually

@@ -27,7 +27,8 @@ initrd=initrd
 append="panic=1 console=ttyS0 udevtimeout=6000 no_timer_check printk.time=1 root=/dev/sda selinux=0"
 
 TEMP=`getopt \
-        --long nested \
+        -o '' \
+        --longoptions 'help,nested' \
         -n run-supernested.sh -- "$@"`
 if [ $? != 0 ]; then
     echo "$0: problem parsing the command line arguments"
@@ -48,10 +49,11 @@ while true ; do
             ;;
         --help)
             echo "$0: read the README file for information about this script"
-            shift
+	    exit 1
             ;;
         --)
             shift
+	    break
             ;;
         *)
             echo "internal error ($1)"
@@ -84,6 +86,17 @@ level="$(
     )"
 if [ -z "$level" ]; then level=0; fi
 append="$append supernested.level=$((level+1))"
+
+echo "Running"
+echo "    qemu = $qemu"
+echo "    memory = $memory"
+echo "    kernel = $kernel"
+echo "    initrd = $initrd"
+echo "    disk = $image"
+echo "    append = $append"
+
+# Since this could crash the machine, better to sync ...
+sync
 
 exec \
 "$qemu" \

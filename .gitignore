@@ -17,3 +17,5 @@ Makefile
 /missing
 /run-supernested.sh
 /supernested-*-*.qcow2
+/tmp-appliance.d
+/tmp-supermin.d

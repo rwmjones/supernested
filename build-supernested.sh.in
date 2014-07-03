@@ -76,4 +76,5 @@ EOF
 mv tmp-appliance.d/kernel .
 mv tmp-appliance.d/initrd .
 qemu-img convert -f raw tmp-appliance.d/root -O qcow2 "$output"
-rm -rf tmp-supermin.d tmp-appliance.d
+
+#rm -rf tmp-supermin.d tmp-appliance.d
