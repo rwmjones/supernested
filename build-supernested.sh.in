@@ -66,10 +66,14 @@ echo "them, but encourage your distro to stop using security-through-obscurity."
 # Add the kernel and initrd to the image.
 # We have to do this here, AFTER the build step, because we don't
 # have the kernel & initrd before this.
-echo "Adding kernel and initrd to the disk image ..."
-"$guestfish" --format=raw -a tmp-appliance.d/root -m /dev/sda <<EOF
+"$guestfish" --format=raw -a tmp-appliance.d/root -m /dev/sda <<'EOF'
+  echo "Adding kernel and initrd to the disk image ..."
   upload tmp-appliance.d/kernel /kernel
   upload tmp-appliance.d/initrd /initrd
+
+  echo "Adjusting configuration files in the image ..."
+  mkdir-p /etc/modprobe.d
+  write /etc/modprobe.d/kvm.conf "options kvm_intel nested=1"
 EOF
 
 # Copy out the kernel, initrd and disk image.
