@@ -68,6 +68,8 @@ while true ; do
 	    if [ -n "$accel" ]; then
 		accel=tcg
 		cpu=
+	    else
+		accel=kvm
 	    fi
             shift
             ;;
