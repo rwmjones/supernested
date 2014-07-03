@@ -25,16 +25,25 @@ format=qcow2
 kernel=kernel
 initrd=initrd
 append="panic=1 console=ttyS0 udevtimeout=6000 no_timer_check printk.time=1 root=/dev/sda selinux=0"
+smp=
 
 TEMP=`getopt \
         -o '' \
-        --longoptions 'help,nested' \
+        --longoptions 'help,nested,smp:' \
         -n run-supernested.sh -- "$@"`
 if [ $? != 0 ]; then
     echo "$0: problem parsing the command line arguments"
     exit 1
 fi
 eval set -- "$TEMP"
+
+usage ()
+{
+    echo "$0: Run the supernested appliance."
+    echo "  $0 [--smp=N]"
+    echo "Options:"
+    echo "  --smp=N    Use N virtual CPUs (at all levels)."
+}
 
 while true ; do
     case "$1" in
@@ -45,11 +54,21 @@ while true ; do
             format=raw
             kernel=/kernel
             initrd=/initrd
+	    smp="$(
+                grep -Eo 'supernested.smp=[[:digit:]]+' /proc/cmdline |
+                grep -Eo '[[:digit:]]+'
+                )"
+	    if [ -n "$smp" ]; then smp="-smp $smp"; fi
             shift
             ;;
+	--smp)
+	    smp="-smp $2"
+	    append="$append supernested.smp=$2"
+	    shift 2
+	    ;;
         --help)
-            echo "$0: read the README file for information about this script"
-	    exit 1
+	    usage
+	    exit 0
             ;;
         --)
             shift
@@ -89,6 +108,7 @@ append="$append supernested.level=$((level+1))"
 
 echo "Running"
 echo "    qemu = $qemu"
+echo "    smp = $smp"
 echo "    memory = $memory"
 echo "    kernel = $kernel"
 echo "    initrd = $initrd"
@@ -102,6 +122,7 @@ exec \
 "$qemu" \
     -cpu host \
     -machine accel=kvm \
+    $smp \
     -display none \
     -m $memory \
     -no-reboot \
