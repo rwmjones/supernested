@@ -23,6 +23,10 @@ Gnu General Public License, version 2 or above.  See 'COPYING'.
 Requirements
 ----------------------------------------------------------------------
 
+ - Have a look at the 'build-supernested.sh.in' script for a variable
+   called $packages.  You need to install all of those packages on the
+   host.
+
  - supermin version 5
    https://github.com/libguestfs/supermin
    Note: older versions of supermin will not work
