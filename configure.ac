@@ -49,13 +49,13 @@ fi
 dnl Get the distro that supermin thinks it is using.
 AC_MSG_CHECKING([for the distro])
 DISTRO="$(
-    supermin --list-drivers |
+    $SUPERMIN --list-drivers |
     $AWK '$2 == "detected" { gsub ("/", "-", $1); print $1; exit }'
     )"
 AC_MSG_RESULT([$DISTRO])
 AC_SUBST([DISTRO])
 if test -z "$DISTRO"; then
-    AC_MSG_ERROR([cannot get supermin distro from 'supermin --list-drivers' output])
+    AC_MSG_ERROR([cannot get supermin distro from '$SUPERMIN --list-drivers' output])
 fi
 
 dnl Check for a usable qemu KVM binary.

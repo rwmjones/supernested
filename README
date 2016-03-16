@@ -53,6 +53,10 @@ To build the disk image, do:
   ./configure
   make
 
+If supermin and qemu are not in the normal location on the path, you
+can set SUPERMIN and QEMU environment variables before running
+./configure.
+
 Assuming that works you will end up with 4 files:
 
  - 'supernested-<VERSION>-<DISTRO>.qcow2'
