@@ -146,6 +146,14 @@ else
     extra_args="$extra_args -cpu host -machine accel=kvm"
 fi
 
+case "$arch" in
+    i[3456]86|x86_64)
+	extra_args="$extra_args -no-hpet"
+	;;
+    *)
+	;;
+esac
+
 echo "Running"
 echo "    qemu = $qemu"
 echo "    extra_args = $extra_args"
@@ -165,7 +173,6 @@ exec \
     -m $memory \
     -no-reboot \
     -rtc driftfix=slew \
-    -no-hpet \
     -global kvm-pit.lost_tick_policy=discard \
     -kernel "$kernel" \
     -initrd "$initrd" \
