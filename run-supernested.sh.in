@@ -24,7 +24,7 @@ image="supernested-@VERSION@-@DISTRO@.qcow2"
 format=qcow2
 kernel=kernel
 initrd=initrd
-append="panic=1 console=ttyS0 udevtimeout=6000 no_timer_check printk.time=1 root=/dev/sda selinux=0"
+append="panic=1 console=ttyS0 udevtimeout=6000 udev.event-timeout=6000 no_timer_check printk.time=1 root=/dev/sda selinux=0"
 smp=
 tcg=
 
