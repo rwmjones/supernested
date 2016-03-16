@@ -115,6 +115,17 @@ if [ $memory -lt 2048 ]; then
 fi
 memory=$((memory - 1500))
 
+# ARM mach_virt (-M virt) model only supports 30GB of RAM.
+if [ $memory -gt 30000 ]; then
+    case "$arch" in
+	arm*|aarch64)
+	    echo "$0: limiting memory to 30000 MB for ARM mach_virt"
+	    memory=30000
+	    ;;
+	*)
+    esac
+fi
+
 # Get current nesting level from /proc/cmdline, increment it, add it
 # to the command line.
 level="$(
