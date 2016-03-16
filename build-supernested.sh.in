@@ -39,6 +39,7 @@ if [[ "$distro" =~ ^fedora- ]]; then
         coreutils
         grep
         qemu
+        qemu-kvm-rhev
         systemd
         util-linux
     "
