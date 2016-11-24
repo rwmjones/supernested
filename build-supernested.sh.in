@@ -70,8 +70,6 @@ cp excludefiles tmp-supermin.d/
 
 # Run the build step.
 echo "Building the full appliance ..."
-echo "If you see 'Permission denied' errors here, you can probably ignore"
-echo "them, but encourage your distro to stop using security-through-obscurity."
 "$supermin" --build --format ext2 tmp-supermin.d -o tmp-appliance.d
 
 # Add the kernel and initrd to the image.
