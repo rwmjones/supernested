@@ -40,7 +40,7 @@ if [[ "$distro" =~ ^fedora- ]]; then
         grep
         qemu
         qemu-kvm-rhev
-        systemd
+        systemd-udev
         util-linux
     "
 elif [[ "$distro" =~ ^debian- ]]; then
