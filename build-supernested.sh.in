@@ -38,6 +38,7 @@ if [[ "$distro" =~ ^fedora- ]]; then
         bash
         coreutils
         grep
+        kmod
         qemu
         qemu-system-x86
         systemd-udev
