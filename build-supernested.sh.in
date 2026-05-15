@@ -39,7 +39,7 @@ if [[ "$distro" =~ ^fedora- ]]; then
         coreutils
         grep
         qemu
-        qemu-kvm-rhev
+        qemu-system-x86
         systemd-udev
         util-linux
     "
@@ -49,7 +49,6 @@ elif [[ "$distro" =~ ^debian- ]]; then
         coreutils
         grep
         qemu-system-x86
-        sgabios
         sysvinit-core
         util-linux
     "
