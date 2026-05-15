@@ -143,16 +143,8 @@ if [ -n "$smp" ]; then extra_args="$extra_args -smp $smp"; fi
 if [ -n "$tcg" ]; then
     extra_args="$extra_args -machine accel=tcg"
 else
-    extra_args="$extra_args -cpu host -machine accel=kvm"
+    extra_args="$extra_args -cpu max -machine accel=kvm"
 fi
-
-case "$arch" in
-    i[3456]86|x86_64)
-	extra_args="$extra_args -no-hpet -device sga"
-	;;
-    *)
-	;;
-esac
 
 echo "Running"
 echo "    qemu = $qemu"
