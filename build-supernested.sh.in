@@ -81,7 +81,7 @@ echo "Building the full appliance ..."
 
   echo "Adjusting configuration files in the image ..."
   mkdir-p /etc/modprobe.d
-  write /etc/modprobe.d/kvm.conf "options kvm_intel nested=1"
+  write /etc/modprobe.d/kvm.conf "options kvm_intel nested=1\noptions kvm_amd nested=1"
 EOF
 
 # Copy out the kernel, initrd and disk image.
